@@ -5,6 +5,7 @@ import {
   PlusCircle,
   ImageIcon,
   CheckCircle,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,7 +21,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useReadNFTData } from "@/app/hooks/useReadNFTData";
 import { useMint } from "@/app/hooks/useMintNFT";
-import { useSmartAccountClient } from "@account-kit/react";
+import { useSmartAccountClient, useUser } from "@account-kit/react";
 import { NFT_CONTRACT_ADDRESS } from "@/lib/constants";
 
 export default function NftMintCard() {
@@ -28,10 +29,17 @@ export default function NftMintCard() {
   const [showSuccess, setShowSuccess] = useState(true);
 
   const { client } = useSmartAccountClient({});
+  const user = useUser();
+  
+  // Determine wallet type and capabilities
+  const isEOA = user?.type === 'eoa';
+  const hasSmartFeatures = !!client; // True for both smart accounts and EIP-7702 Smart EOAs
+  const isSmartEOA = isEOA && hasSmartFeatures; // EIP-7702 enabled EOA
+  const isPureEOA = isEOA && !hasSmartFeatures; // Traditional EOA without smart features
 
   const { uri, count, isLoadingCount, refetchCount } = useReadNFTData({
     contractAddress: NFT_CONTRACT_ADDRESS,
-    ownerAddress: client?.account?.address,
+    ownerAddress: client?.account?.address || user?.address,
   });
 
   const { isMinting, handleMint, error, transactionUrl } = useMint({
@@ -56,10 +64,14 @@ export default function NftMintCard() {
       <CardHeader className="pb-0">
         <div className="flex justify-between items-center">
           <div>
-            <CardTitle className="mb-2">Mint an NFT with no gas fees</CardTitle>
+            <CardTitle className="mb-2">
+              Mint an NFT {hasSmartFeatures && "with no gas fees"}
+              {isSmartEOA && " (Smart EOA)"}
+            </CardTitle>
             <CardDescription>
-              Users can mint, trade, and swap with no gas fees or signing
-              through gas sponsorship. Try it out.
+              {isPureEOA && "Mint using your external wallet. You'll pay gas fees in ETH."}
+              {isSmartEOA && "Your EOA has smart account features enabled via EIP-7702! Enjoy gas-free minting."}
+              {!isEOA && "Users can mint, trade, and swap with no gas fees or signing through gas sponsorship. Try it out."}
             </CardDescription>
           </div>
           <Badge
@@ -100,6 +112,30 @@ export default function NftMintCard() {
             </p>
           </div>
         </div>
+
+        {isPureEOA && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-blue-600">
+                <strong>Traditional EOA Connected:</strong> You'll pay gas fees in ETH to mint. 
+                For gas-free minting, try logging in with email or social accounts.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isSmartEOA && (
+          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Info className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-green-600">
+                <strong>EIP-7702 Smart EOA:</strong> Your external wallet now has smart account features! 
+                Enjoy gas-free transactions while keeping your EOA address.
+              </p>
+            </div>
+          </div>
+        )}
 
         {error && (
           <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-lg">

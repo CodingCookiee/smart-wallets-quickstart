@@ -1,11 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
-import { useLogout, useSignerStatus } from "@account-kit/react";
+import { useLogout, useSignerStatus, useUser } from "@account-kit/react";
 import Image from "next/image";
 
 export default function Header() {
   const { logout } = useLogout();
   const { isConnected } = useSignerStatus();
+  const user = useUser();
+  
+  // Check if user is connected via external wallet or smart account
+  const isUserConnected = isConnected || (user && user.type === 'eoa');
 
   return (
     <header className="border-b">
@@ -20,7 +24,7 @@ export default function Header() {
           />
         </div>
 
-        {isConnected && (
+        {isUserConnected && (
           <Button
             variant="ghost"
             size="sm"

@@ -21,11 +21,23 @@ import { useUser, useSmartAccountClient } from "@account-kit/react";
 export default function UserInfo() {
   const [isCopied, setIsCopied] = useState(false);
   const user = useUser();
-  const userEmail = user?.email ?? "anon";
   const { client } = useSmartAccountClient({});
+  
+  // Determine wallet type and capabilities
+  const isEOA = user?.type === 'eoa';
+  const hasSmartFeatures = !!client;
+  const isSmartEOA = isEOA && hasSmartFeatures;
+  
+  // Set appropriate user display name
+  const userEmail = user?.email ?? 
+    (isSmartEOA ? 'Smart EOA (EIP-7702)' : 
+     isEOA ? 'External Wallet' : "anon");
+  
+  // Get the appropriate address - smart account or EOA
+  const userAddress = client?.account?.address || user?.address || "";
 
   const handleCopy = () => {
-    navigator.clipboard.writeText(client?.account?.address ?? "");
+    navigator.clipboard.writeText(userAddress);
     setIsCopied(true);
     setTimeout(() => setIsCopied(false), 2000);
   };
@@ -48,12 +60,13 @@ export default function UserInfo() {
         <div>
           <div className="flex items-center gap-2 mb-1">
             <p className="text-sm font-medium text-muted-foreground">
-              Smart wallet address
+              {isSmartEOA ? "Smart EOA address" : 
+               client ? "Smart wallet address" : "Wallet address"}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="outline" className="font-mono text-xs py-1 px-2">
-              {formatAddress(client?.account?.address ?? "")}
+              {formatAddress(userAddress)}
             </Badge>
             <TooltipProvider>
               <Tooltip open={isCopied}>
@@ -77,10 +90,10 @@ export default function UserInfo() {
               size="icon"
               className="h-6 w-6"
               onClick={() => {
-                const address = client?.account?.address;
-                if (address && client?.chain?.blockExplorers?.default?.url) {
+                if (userAddress) {
+                  const explorerUrl = client?.chain?.blockExplorers?.default?.url || "https://sepolia.arbiscan.io";
                   window.open(
-                    `${client.chain.blockExplorers.default.url}/address/${address}`,
+                    `${explorerUrl}/address/${userAddress}`,
                     "_blank"
                   );
                 }

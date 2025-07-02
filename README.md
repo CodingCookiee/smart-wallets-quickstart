@@ -4,11 +4,16 @@ Use this template to get started with **embedded smart wallets** using [Alchemy 
 
 ## ✨ Features
 
-- Email, passkey & social login using pre‑built UI components
-- Flexible, secure, and cheap smart accounts
-- Gasless transactions powered by ERC-4337 Account Abstraction
-- One‑click NFT mint on Arbitrum Sepolia (no ETH required)
-- Server‑side rendering ready – session persisted with cookies
+- **Complete Authentication Suite** powered by Alchemy Signer:
+  - 📧 Email OTP/Magic Link authentication  
+  - 🔑 Passkey authentication (biometrics, hardware keys)
+  - 🌐 Social login (Google, Facebook, + more available)
+  - 👛 External wallet connection (MetaMask, WalletConnect)
+- **Smart Accounts** with gas sponsorship and account abstraction
+- **Dual Mode Support**: Smart accounts (gas-free) + EOAs (user-paid gas)
+- **One‑click NFT minting** on Arbitrum Sepolia with appropriate UX for each wallet type
+- **EIP-7702 Ready** for Smart EOA features (configurable)
+- Server‑side rendering with cookie persistence
 - TailwindCSS + shadcn/ui components, React Query, TypeScript
 
 ![Smart Wallet Quickstart](https://github.com/user-attachments/assets/2903fb78-e632-4aaa-befd-5775c60e1ca2)
