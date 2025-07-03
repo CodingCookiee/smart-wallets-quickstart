@@ -4,10 +4,10 @@ import {
   useSendUserOperation,
   useUser,
   useSignerStatus,
+  useChain,
 } from "@account-kit/react";
-import { encodeFunctionData, createWalletClient, custom, http } from "viem";
-import { NFT_MINTABLE_ABI_PARSED, NFT_CONTRACT_ADDRESS } from "@/lib/constants";
-import { arbitrumSepolia } from "@account-kit/infra";
+import { encodeFunctionData, createWalletClient, custom } from "viem";
+import { NFT_MINTABLE_ABI_PARSED, getNFTContractAddress } from "@/lib/constants";
 
 export interface UseMintNFTParams {
   onSuccess?: () => void;
@@ -26,6 +26,7 @@ export const useMint = ({ onSuccess }: UseMintNFTParams): UseMintReturn => {
   const { client } = useSmartAccountClient({});
   const user = useUser();
   const signerStatus = useSignerStatus();
+  const { chain } = useChain();
 
   const handleSuccess = () => {
     setIsMinting(false);
@@ -55,12 +56,18 @@ export const useMint = ({ onSuccess }: UseMintNFTParams): UseMintReturn => {
     setError(undefined);
 
     try {
+      if (!chain) {
+        throw new Error("No chain selected");
+      }
+
+      const contractAddress = getNFTContractAddress(chain.id);
+
       // Check if we have a smart account (for email/social logins OR EIP-7702 enabled EOAs)
       if (client) {
         console.log("Using smart account client for minting (includes EIP-7702 Smart EOAs)");
         sendUserOperation({
           uo: {
-            target: NFT_CONTRACT_ADDRESS,
+            target: contractAddress,
             data: encodeFunctionData({
               abi: NFT_MINTABLE_ABI_PARSED,
               functionName: "mintTo",
@@ -75,7 +82,7 @@ export const useMint = ({ onSuccess }: UseMintNFTParams): UseMintReturn => {
       if (user && user.type === 'eoa' && typeof window !== 'undefined' && window.ethereum) {
         console.log("Using fallback EOA transaction (user pays gas)");
         const walletClient = createWalletClient({
-          chain: arbitrumSepolia,
+          chain: chain,
           transport: custom(window.ethereum),
         });
 
@@ -85,7 +92,7 @@ export const useMint = ({ onSuccess }: UseMintNFTParams): UseMintReturn => {
         }
 
         const hash = await walletClient.writeContract({
-          address: NFT_CONTRACT_ADDRESS,
+          address: contractAddress,
           abi: NFT_MINTABLE_ABI_PARSED,
           functionName: "mintTo",
           args: [accounts[0]],
@@ -93,7 +100,7 @@ export const useMint = ({ onSuccess }: UseMintNFTParams): UseMintReturn => {
         });
 
         // Create transaction URL for EOA transaction
-        const transactionUrl = `${arbitrumSepolia.blockExplorers.default.url}/tx/${hash}`;
+        const transactionUrl = `${chain.blockExplorers?.default?.url}/tx/${hash}`;
         
         setIsMinting(false);
         onSuccess?.();
@@ -112,7 +119,7 @@ export const useMint = ({ onSuccess }: UseMintNFTParams): UseMintReturn => {
       setIsMinting(false);
       setError(err.message || "Failed to mint NFT");
     }
-  }, [client, user, sendUserOperation, onSuccess]);
+  }, [client, user, sendUserOperation, onSuccess, chain]);
 
   const transactionUrl = useMemo(() => {
     if (!client?.chain?.blockExplorers || !sendUserOperationResult?.hash) {

@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 import { useLogout, useSignerStatus, useUser } from "@account-kit/react";
 import Image from "next/image";
+import NetworkSwitcher from "./network-switcher";
 
 export default function Header() {
   const { logout } = useLogout();
@@ -24,17 +25,22 @@ export default function Header() {
           />
         </div>
 
-        {isUserConnected && (
-          <Button
-            variant="ghost"
-            size="sm"
-            className="gap-2"
-            onClick={() => logout()}
-          >
-            <LogOut className="h-4 w-4" />
-            <span>Logout</span>
-          </Button>
-        )}
+        <div className="flex items-center gap-2">
+          {/* {isUserConnected &&  */}
+          <NetworkSwitcher/>
+           {/* } */}
+          {isUserConnected && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="gap-2"
+              onClick={() => logout()}
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Logout</span>
+            </Button>
+          )}
+        </div>
       </div>
     </header>
   );

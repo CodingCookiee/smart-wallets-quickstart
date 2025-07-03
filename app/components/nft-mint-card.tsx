@@ -21,8 +21,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useReadNFTData } from "@/app/hooks/useReadNFTData";
 import { useMint } from "@/app/hooks/useMintNFT";
-import { useSmartAccountClient, useUser } from "@account-kit/react";
-import { NFT_CONTRACT_ADDRESS } from "@/lib/constants";
+import { useSmartAccountClient, useUser, useChain } from "@account-kit/react";
+import { getNFTContractAddress } from "@/lib/constants";
 
 export default function NftMintCard() {
   const [isImageLoading, setIsImageLoading] = useState(true);
@@ -30,6 +30,7 @@ export default function NftMintCard() {
 
   const { client } = useSmartAccountClient({});
   const user = useUser();
+  const { chain } = useChain();
   
   // Determine wallet type and capabilities
   const isEOA = user?.type === 'eoa';
@@ -37,8 +38,11 @@ export default function NftMintCard() {
   const isSmartEOA = isEOA && hasSmartFeatures; // EIP-7702 enabled EOA
   const isPureEOA = isEOA && !hasSmartFeatures; // Traditional EOA without smart features
 
+  // Get contract address for current chain
+  const contractAddress = chain ? getNFTContractAddress(chain.id) : undefined;
+
   const { uri, count, isLoadingCount, refetchCount } = useReadNFTData({
-    contractAddress: NFT_CONTRACT_ADDRESS,
+    contractAddress,
     ownerAddress: client?.account?.address || user?.address,
   });
 
@@ -69,8 +73,7 @@ export default function NftMintCard() {
               {isSmartEOA && " (Smart EOA)"}
             </CardTitle>
             <CardDescription>
-              {isPureEOA && "Mint using your external wallet. You'll pay gas fees in ETH."}
-              {isSmartEOA && "Your EOA has smart account features enabled via EIP-7702! Enjoy gas-free minting."}
+              {isEOA && "Mint using your external wallet. You'll pay gas fees until EIP-7702 is live."}
               {!isEOA && "Users can mint, trade, and swap with no gas fees or signing through gas sponsorship. Try it out."}
             </CardDescription>
           </div>
@@ -113,25 +116,15 @@ export default function NftMintCard() {
           </div>
         </div>
 
-        {isPureEOA && (
-          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-            <div className="flex items-start gap-2">
-              <Info className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-blue-600">
-                <strong>Traditional EOA Connected:</strong> You'll pay gas fees in ETH to mint. 
-                For gas-free minting, try logging in with email or social accounts.
-              </p>
-            </div>
-          </div>
-        )}
 
-        {isSmartEOA && (
-          <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+
+        {isEOA && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-start gap-2">
-              <Info className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-              <p className="text-sm text-green-600">
-                <strong>EIP-7702 Smart EOA:</strong> Your external wallet now has smart account features! 
-                Enjoy gas-free transactions while keeping your EOA address.
+              <Info className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-amber-600">
+                <strong>EIP-7702 Status:</strong> Your EOA is ready for smart features, but EIP-7702 
+                isn't live yet (Pectra upgrade H1 2025). Currently, you'll pay gas fees.
               </p>
             </div>
           </div>
