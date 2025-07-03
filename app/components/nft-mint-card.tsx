@@ -38,8 +38,8 @@ export default function NftMintCard() {
   const isSmartEOA = isEOA && hasSmartFeatures; // EIP-7702 enabled EOA
   const isPureEOA = isEOA && !hasSmartFeatures; // Traditional EOA without smart features
 
-  // Get contract address for current chain
-  const contractAddress = chain ? getNFTContractAddress(chain.id) : undefined;
+  // Get contract address for current chain - fallback to arbitrum sepolia
+  const contractAddress = chain ? getNFTContractAddress(chain.id) : getNFTContractAddress(421614);
 
   const { uri, count, isLoadingCount, refetchCount } = useReadNFTData({
     contractAddress,

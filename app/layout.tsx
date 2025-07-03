@@ -13,17 +13,22 @@ export const metadata: Metadata = {
   description: "Account Kit Quickstart NextJS Template",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // Persist state across pages
-  // https://www.alchemy.com/docs/wallets/react/ssr#persisting-the-account-state
-  const initialState = cookieToInitialState(
-    config,
-    headers().get("cookie") ?? undefined
-  );
+  // Persist state across pages with proper error handling
+  const headersList = await headers();
+  const cookieHeader = headersList.get("cookie");
+  
+  let initialState;
+  try {
+    initialState = cookieToInitialState(config, cookieHeader ?? undefined);
+  } catch (error) {
+    console.warn("Failed to parse initial state from cookies:", error);
+    initialState = undefined;
+  }
 
   return (
     <html lang="en">

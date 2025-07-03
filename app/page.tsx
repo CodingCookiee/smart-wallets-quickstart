@@ -1,6 +1,7 @@
 "use client";
 
 import { useSignerStatus, useUser } from "@account-kit/react";
+import { useEffect, useState } from "react";
 import UserInfoCard from "./components/user-info-card";
 import NftMintCard from "./components/nft-mint-card";
 import LoginCard from "./components/login-card";
@@ -8,8 +9,26 @@ import Header from "./components/header";
 import LearnMore from "./components/learn-more";
 
 export default function Home() {
+  const [isMounted, setIsMounted] = useState(false);
   const signerStatus = useSignerStatus();
   const user = useUser();
+  
+  // Ensure component only renders on client side
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) {
+    return (
+      <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+        <div className="container mx-auto px-4 py-8 h-full">
+          <div className="flex justify-center items-center h-full">
+            <div className="animate-pulse">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
   
   // Check if user is connected via external wallet or smart account
   const isUserConnected = signerStatus.isConnected || (user && user.type === 'eoa');
