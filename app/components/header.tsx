@@ -26,9 +26,9 @@ export default function Header() {
         </div>
 
         <div className="flex items-center gap-2">
-          {/* {isUserConnected &&  */}
+          {/* {isUserConnected && 
           <NetworkSwitcher/>
-           {/* } */}
+          } */}
           {isUserConnected && (
             <Button
               variant="ghost"
