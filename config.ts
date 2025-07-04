@@ -90,7 +90,7 @@ try {
       transport: alchemy({ apiKey: API_KEY }),
 
       // Set default chain (Arbitrum Sepolia or Ethereum Sepolia)
-      chain: sepolia,
+      chain: DEFAULT_CHAIN,
 
       ssr: true, // Disable SSR to prevent hydration issues
       storage: cookieStorage, // more about persisting state with cookies: https://www.alchemy.com/docs/wallets/react/ssr#persisting-the-account-state
