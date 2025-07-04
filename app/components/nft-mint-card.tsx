@@ -6,6 +6,8 @@ import {
   ImageIcon,
   CheckCircle,
   Info,
+  Shield,
+  AlertTriangle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -22,6 +24,7 @@ import Link from "next/link";
 import { useReadNFTData } from "@/app/hooks/useReadNFTData";
 import { useMint } from "@/app/hooks/useMintNFT";
 import { useSmartAccountClient, useUser, useChain } from "@account-kit/react";
+import { useEIP7702SmartAccount } from "@/app/hooks/useEIP7702SmartAccount";
 import { getNFTContractAddress } from "@/lib/constants";
 
 export default function NftMintCard() {
@@ -31,26 +34,30 @@ export default function NftMintCard() {
   const { client } = useSmartAccountClient({});
   const user = useUser();
   const { chain } = useChain();
-  
+  const eip7702 = useEIP7702SmartAccount();
+
   // Determine wallet type and capabilities
-  const isEOA = user?.type === 'eoa';
+  const isEOA = user?.type === "eoa";
   const hasSmartFeatures = !!client; // True for both smart accounts and EIP-7702 Smart EOAs
-  const isSmartEOA = isEOA && hasSmartFeatures; // EIP-7702 enabled EOA
+  const isSmartEOA = isEOA && eip7702.isSmartEOA; // EIP-7702 enabled EOA
   const isPureEOA = isEOA && !hasSmartFeatures; // Traditional EOA without smart features
 
   // Get contract address for current chain - fallback to arbitrum sepolia
-  const contractAddress = chain ? getNFTContractAddress(chain.id) : getNFTContractAddress(421614);
+  const contractAddress = chain
+    ? getNFTContractAddress(chain.id)
+    : getNFTContractAddress(421614);
 
   const { uri, count, isLoadingCount, refetchCount } = useReadNFTData({
     contractAddress,
     ownerAddress: client?.account?.address || user?.address,
   });
 
-  const { isMinting, handleMint, error, transactionUrl } = useMint({
-    onSuccess: () => {
-      refetchCount();
-    },
-  });
+  const { isMinting, handleMint, error, transactionUrl, needsDelegation } =
+    useMint({
+      onSuccess: () => {
+        refetchCount();
+      },
+    });
 
   // Reset success animation when new transaction appears
   useEffect(() => {
@@ -73,8 +80,10 @@ export default function NftMintCard() {
               {isSmartEOA && " (Smart EOA)"}
             </CardTitle>
             <CardDescription>
-              {isEOA && "Mint using your external wallet. You'll pay gas fees until EIP-7702 is live."}
-              {!isEOA && "Users can mint, trade, and swap with no gas fees or signing through gas sponsorship. Try it out."}
+              {isEOA &&
+                "Mint using your external wallet. You'll pay gas fees until EIP-7702 is live."}
+              {!isEOA &&
+                "Users can mint, trade, and swap with no gas fees or signing through gas sponsorship. Try it out."}
             </CardDescription>
           </div>
           <Badge
@@ -116,15 +125,52 @@ export default function NftMintCard() {
           </div>
         </div>
 
+        {/* EIP-7702 Status */}
+        {isSmartEOA && (
+          <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <Shield className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="text-sm text-blue-600">
+                  <strong>EIP-7702 Smart EOA:</strong>{" "}
+                  {eip7702.isDelegated
+                    ? "Delegated & Ready"
+                    : "Created but not delegated"}
+                </p>
+                {!eip7702.isDelegated && (
+                  <p className="text-xs text-blue-500 mt-1">
+                    Your first transaction will delegate your EOA to enable
+                    smart features.
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
+        {/* Delegation needed warning */}
+        {needsDelegation && (
+          <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+            <div className="flex items-start gap-2">
+              <AlertTriangle className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
+              <p className="text-sm text-amber-600">
+                <strong>Delegation Required:</strong> Your EOA needs to be
+                delegated first to enable smart features. This will happen
+                automatically on your first transaction.
+              </p>
+            </div>
+          </div>
+        )}
 
-        {isEOA && (
+        {/* Regular EOA info */}
+        {isEOA && !isSmartEOA && (
           <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
             <div className="flex items-start gap-2">
               <Info className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-amber-600">
-                <strong>EIP-7702 Status:</strong> Your EOA will get smart features on first transaction.
-                Gas sponsorship and batching will activate automatically.
+                <strong>Standard EOA:</strong>{" "}
+                {eip7702.error ||
+                  "EIP-7702 not available. You'll pay gas fees for transactions."}
               </p>
             </div>
           </div>
@@ -143,7 +189,7 @@ export default function NftMintCard() {
             className="w-full sm:w-auto gap-2 relative overflow-hidden group"
             size="lg"
             onClick={handleMint}
-            disabled={isMinting}
+            disabled={isMinting || eip7702.isLoading}
           >
             <span
               className={cn(
@@ -152,7 +198,7 @@ export default function NftMintCard() {
               )}
             >
               <PlusCircle className="h-[18px] w-[18px]" />
-              Mint New NFT
+              {needsDelegation ? "Delegate & Mint NFT" : "Mint New NFT"}
             </span>
             <span
               className={cn(
@@ -161,7 +207,7 @@ export default function NftMintCard() {
               )}
             >
               <Loader2 className="animate-spin h-5 w-5 mr-2" />
-              Minting...
+              {needsDelegation ? "Delegating..." : "Minting..."}
             </span>
           </Button>
 
