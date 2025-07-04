@@ -32,8 +32,8 @@ All these methods use Alchemy Signer under the hood and create **Smart Accounts*
 4. **👛 External Wallets**
    - MetaMask, Coinbase Wallet, etc.
    - WalletConnect support
-   - ❌ User pays gas fees
-   - ❌ No smart account features (remains EOA)
+   - ✅ EIP-7702 Smart EOA features (gas sponsorship, batching)
+   - ✅ Maintains original EOA address
 
 ## 🚀 Additional Features Available
 

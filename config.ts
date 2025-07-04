@@ -26,17 +26,18 @@ if (!SPONSORSHIP_POLICY_ID) {
 // - Email OTP/Magic Link → Creates smart accounts with gas sponsorship
 // - Social Login (Google, Facebook, etc.) → Creates smart accounts with gas sponsorship
 // - Passkey Authentication → Creates smart accounts with gas sponsorship
-// - External Wallets → Connects EOAs (user pays gas until EIP-7702 is live)
+// - External Wallets → Connects EOAs (will be upgraded to Smart EOAs with EIP-7702)
 
-// Get default chain from environment or use Arbitrum Sepolia
+// Get default chain from environment or use Ethereum Sepolia
 const getDefaultChain = (): Chain => {
   const chainEnv = process.env.NEXT_PUBLIC_DEFAULT_CHAIN;
   switch (chainEnv) {
-    case "sepolia":
-      return sepolia;
     case "arbitrum-sepolia":
+      return arbitrumSepolia;
+    case "eth-sepolia":
+    case "sepolia":
     default:
-      return arbitrumSepolia; // Default fallback
+      return sepolia; // Default to Ethereum Sepolia
   }
 };
 
@@ -97,13 +98,13 @@ try {
       enablePopupOauth: true, // must be set to "true" if you plan on using popup rather than redirect in the social login flow
       policyId: SPONSORSHIP_POLICY_ID,
 
-      // ⚠️ EIP-7702 Smart EOAs - FUTURE FEATURE (NOT YET LIVE)
-      // EIP-7702 is part of Ethereum's Pectra upgrade (H1 2025)
-      // Currently enabled but has no effect until the upgrade goes live
-      // When active: EOAs will gain smart account features with gas sponsorship
+      // ✅ EIP-7702 Smart EOAs - LIVE NOW!
+      // EIP-7702 is live on Ethereum Mainnet, Sepolia, and other supported networks
+      // This allows EOAs to gain smart account features while maintaining their address
+      // Benefits: Gas sponsorship, batching, session keys - all at the same address!
       sessionConfig: {
         eip7702: {
-          enable: true, // 🔮 Future-ready - Will activate after Pectra upgrade
+          enable: true, // ✅ Active - Transforms EOAs into Smart EOAs
         },
       },
     },

@@ -45,8 +45,8 @@ Your app now supports **both sponsored networks**:
 2. **Via UI**: Use the network switcher in the header when logged in
 3. **Via Wallet**: MetaMask users can switch networks manually
 
-## ⚠️ EIP-7702 Status:
+## ✅ EIP-7702 Status:
 
-- **Currently**: Not live on any network (Pectra upgrade pending)
-- **Future**: Will enable smart features for EOAs
-- **Timeline**: H1 2025 for Ethereum, Arbitrum follows with ArbOS 40
+- **Currently**: Live on Ethereum Mainnet, Sepolia, and Arbitrum Sepolia
+- **Features**: Smart EOA capabilities with gas sponsorship and batching
+- **Status**: Active and ready to use with compatible wallets

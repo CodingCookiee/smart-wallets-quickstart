@@ -123,8 +123,8 @@ export default function NftMintCard() {
             <div className="flex items-start gap-2">
               <Info className="h-4 w-4 text-amber-600 mt-0.5 flex-shrink-0" />
               <p className="text-sm text-amber-600">
-                <strong>EIP-7702 Status:</strong> Your EOA is ready for smart features, but EIP-7702 
-                isn't live yet (Pectra upgrade H1 2025). Currently, you'll pay gas fees.
+                <strong>EIP-7702 Status:</strong> Your EOA will get smart features on first transaction.
+                Gas sponsorship and batching will activate automatically.
               </p>
             </div>
           </div>
